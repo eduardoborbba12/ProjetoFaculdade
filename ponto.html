@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PontoCerto — Controle de Ponto | Supermercado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- TELA DE LOGIN -->
+<!-- ============================================================ -->
+<section id="tela-login" class="tela tela-login">
+  <div class="login-bg-pattern"></div>
+  <div class="login-card">
+    <div class="login-card-hole"></div>
+    <div class="login-brand">
+      <div class="login-brand-icon"><i class="fa-solid fa-cart-shopping"></i></div>
+      <h1>PontoCerto</h1>
+      <p>Controle de Ponto &amp; Gestão de Funcionários</p>
+    </div>
+
+    <div class="login-tipo-toggle" role="tablist">
+      <button type="button" class="toggle-btn active" data-tipo="funcionario" id="btn-tipo-funcionario">
+        <i class="fa-solid fa-id-badge"></i> Funcionário
+      </button>
+      <button type="button" class="toggle-btn" data-tipo="admin" id="btn-tipo-admin">
+        <i class="fa-solid fa-user-shield"></i> Administrador
+      </button>
+    </div>
+
+    <form id="form-login" autocomplete="off">
+      <div class="campo">
+        <label for="login-usuario">Matrícula ou usuário</label>
+        <input type="text" id="login-usuario" placeholder="Ex.: 1001" required>
+      </div>
+      <div class="campo">
+        <label for="login-senha">Senha</label>
+        <div class="campo-senha">
+          <input type="password" id="login-senha" placeholder="••••••" required>
+          <button type="button" class="btn-olho" id="btn-olho-login" tabindex="-1"><i class="fa-solid fa-eye"></i></button>
+        </div>
+      </div>
+      <p class="login-erro" id="login-erro"></p>
+      <button type="submit" class="btn btn-primario btn-full">Entrar <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
+    </form>
+
+    <div class="login-demo">
+      <p><i class="fa-solid fa-circle-info"></i> Acesso de demonstração</p>
+      <div class="login-demo-grid">
+        <span><strong>Admin:</strong> admin / admin123</span>
+        <span><strong>Funcionário:</strong> 1001 / 1234</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- APP (Admin e Funcionário compartilham a casca) -->
+<!-- ============================================================ -->
+<div id="app" class="app oculto">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-topo">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon"><i class="fa-solid fa-cart-shopping"></i></div>
+        <span class="sidebar-brand-nome">PontoCerto</span>
+      </div>
+      <button class="sidebar-fechar" id="btn-fechar-sidebar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <nav class="sidebar-menu" id="sidebar-menu">
+      <!-- Preenchido via JS conforme o perfil (admin/funcionario) -->
+    </nav>
+
+    <div class="sidebar-rodape">
+      <div class="sidebar-usuario">
+        <div class="avatar" id="sidebar-avatar">--</div>
+        <div class="sidebar-usuario-info">
+          <strong id="sidebar-usuario-nome">—</strong>
+          <span id="sidebar-usuario-cargo">—</span>
+        </div>
+      </div>
+      <button class="btn-sair" id="btn-sair" title="Sair"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="main">
+    <header class="topbar">
+      <button class="btn-menu-mobile" id="btn-menu-mobile"><i class="fa-solid fa-bars"></i></button>
+      <div class="topbar-titulo">
+        <h2 id="pagina-titulo">Dashboard</h2>
+        <span id="pagina-subtitulo">Visão geral do supermercado</span>
+      </div>
+      <div class="topbar-acoes">
+        <div class="topbar-relogio" id="topbar-relogio">--:--:--</div>
+      </div>
+    </header>
+
+    <main class="conteudo" id="conteudo">
+
+      <!-- ===================== DASHBOARD ===================== -->
+      <section class="pagina" id="pagina-dashboard" data-pagina="dashboard">
+        <div class="cards-grid" id="dash-cards"></div>
+        <div class="dash-graficos">
+          <div class="painel">
+            <div class="painel-cabecalho">
+              <h3>Horas trabalhadas por funcionário (semana)</h3>
+            </div>
+            <canvas id="graf-horas-funcionario" height="220"></canvas>
+          </div>
+          <div class="painel">
+            <div class="painel-cabecalho">
+              <h3>Horas extras (semana)</h3>
+            </div>
+            <canvas id="graf-horas-extras" height="220"></canvas>
+          </div>
+        </div>
+        <div class="dash-graficos">
+          <div class="painel">
+            <div class="painel-cabecalho">
+              <h3>Ranking — mais horas trabalhadas</h3>
+            </div>
+            <div id="ranking-horas" class="ranking-lista"></div>
+          </div>
+          <div class="painel">
+            <div class="painel-cabecalho">
+              <h3>Atrasos e faltas (mês atual)</h3>
+            </div>
+            <div id="ranking-atrasos" class="ranking-lista"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== BATER PONTO ===================== -->
+      <section class="pagina" id="pagina-ponto" data-pagina="ponto">
+        <div class="ponto-wrap">
+          <div class="ponto-card">
+            <div class="login-card-hole"></div>
+            <span class="ponto-data" id="ponto-data">—</span>
+            <div class="ponto-relogio" id="ponto-relogio">00:00:00</div>
+            <div class="ponto-funcionario">
+              <div class="avatar avatar-lg" id="ponto-avatar">--</div>
+              <div>
+                <strong id="ponto-nome">—</strong>
+                <span id="ponto-matricula">Matrícula —</span>
+              </div>
+            </div>
+
+            <div class="ponto-proximo" id="ponto-proximo">
+              Próximo registro: <strong id="ponto-proximo-tipo">Entrada</strong>
+            </div>
+
+            <button class="btn btn-primario btn-full btn-bater" id="btn-bater-ponto">
+              <i class="fa-solid fa-fingerprint"></i> Bater Ponto
+            </button>
+
+            <div class="ponto-registros-hoje" id="ponto-registros-hoje"></div>
+          </div>
+
+          <div class="painel ponto-historico">
+            <div class="painel-cabecalho">
+              <h3>Meus últimos registros</h3>
+            </div>
+            <div class="tabela-wrap">
+              <table class="tabela" id="tabela-meus-pontos">
+                <thead>
+                  <tr><th>Data</th><th>Entrada</th><th>Saída interv.</th><th>Retorno</th><th>Saída</th><th>Total</th><th>Status</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== FUNCIONÁRIOS ===================== -->
+      <section class="pagina" id="pagina-funcionarios" data-pagina="funcionarios">
+        <div class="painel">
+          <div class="painel-cabecalho painel-cabecalho-acao">
+            <div class="filtros" id="filtros-funcionarios">
+              <input type="text" id="f-func-busca" placeholder="Buscar por nome, matrícula ou cargo...">
+              <select id="f-func-status">
+                <option value="">Status (todos)</option>
+                <option value="Ativo">Ativo</option>
+                <option value="Inativo">Inativo</option>
+              </select>
+            </div>
+            <button class="btn btn-primario" id="btn-novo-funcionario"><i class="fa-solid fa-plus"></i> Novo funcionário</button>
+          </div>
+          <div class="tabela-wrap">
+            <table class="tabela" id="tabela-funcionarios">
+              <thead>
+                <tr>
+                  <th>Nome</th><th>Matrícula</th><th>Cargo</th><th>Salário</th><th>Status</th><th>Horas (mês)</th><th>Ações</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== ESCALAS ===================== -->
+      <section class="pagina" id="pagina-escalas" data-pagina="escalas">
+        <div class="painel">
+          <div class="painel-cabecalho painel-cabecalho-acao">
+            <div class="filtros">
+              <select id="f-escala-funcionario"></select>
+              <select id="f-escala-modelo">
+                <option value="">Aplicar modelo de escala...</option>
+                <option value="5x2">5x2 (seg–sex, 08:00–18:00)</option>
+                <option value="6x1">6x1 (seg–sáb, 08:00–17:00)</option>
+                <option value="personalizada">Personalizada (definir abaixo)</option>
+              </select>
+            </div>
+          </div>
+          <div class="escala-grid" id="escala-grid"></div>
+          <div class="painel-rodape">
+            <button class="btn btn-primario" id="btn-salvar-escala"><i class="fa-solid fa-floppy-disk"></i> Salvar escala</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== SALÁRIOS ===================== -->
+      <section class="pagina" id="pagina-salarios" data-pagina="salarios">
+        <div class="painel">
+          <div class="tabela-wrap">
+            <table class="tabela" id="tabela-salarios">
+              <thead>
+                <tr><th>Funcionário</th><th>Salário mensal</th><th>Jornada diária</th><th>Jornada semanal</th><th>Valor/hora</th><th>Valor hora extra</th><th>Adicional noturno</th><th>Ações</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== HORAS TRABALHADAS ===================== -->
+      <section class="pagina" id="pagina-horas" data-pagina="horas">
+        <div class="painel">
+          <div class="painel-cabecalho painel-cabecalho-acao">
+            <div class="filtros">
+              <select id="f-horas-funcionario"></select>
+              <div class="abas" id="abas-horas">
+                <button class="aba-btn active" data-modo="diario">Diário</button>
+                <button class="aba-btn" data-modo="semanal">Semanal</button>
+                <button class="aba-btn" data-modo="mensal">Mensal</button>
+              </div>
+            </div>
+          </div>
+          <div id="horas-resumo" class="cards-grid cards-grid-sm"></div>
+          <div class="tabela-wrap">
+            <table class="tabela" id="tabela-horas">
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== CONTROLE DE PONTO (admin) ===================== -->
+      <section class="pagina" id="pagina-controle" data-pagina="controle">
+        <div class="painel">
+          <div class="painel-cabecalho painel-cabecalho-acao">
+            <div class="filtros">
+              <select id="f-controle-funcionario"></select>
+              <input type="date" id="f-controle-data">
+              <select id="f-controle-status">
+                <option value="">Status (todos)</option>
+                <option value="Trabalhou">Trabalhou</option>
+                <option value="Falta">Falta</option>
+                <option value="Atraso">Atraso</option>
+                <option value="Saída antecipada">Saída antecipada</option>
+              </select>
+            </div>
+          </div>
+          <div class="tabela-wrap">
+            <table class="tabela" id="tabela-controle">
+              <thead>
+                <tr><th>Funcionário</th><th>Data</th><th>Entrada</th><th>Saída interv.</th><th>Retorno</th><th>Saída</th><th>Situação</th><th>Ações</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== RELATÓRIOS ===================== -->
+      <section class="pagina" id="pagina-relatorios" data-pagina="relatorios">
+        <div class="painel no-print">
+          <div class="painel-cabecalho">
+            <h3>Gerar relatório</h3>
+          </div>
+          <div class="relatorio-filtros">
+            <select id="r-funcionario"><option value="">Todos os funcionários</option></select>
+            <select id="r-periodo">
+              <option value="dia">Dia</option>
+              <option value="semana">Semana</option>
+              <option value="mes" selected>Mês</option>
+              <option value="personalizado">Período personalizado</option>
+            </select>
+            <input type="date" id="r-data-inicio">
+            <input type="date" id="r-data-fim" class="oculto">
+            <button class="btn btn-primario" id="btn-gerar-relatorio"><i class="fa-solid fa-magnifying-glass-chart"></i> Gerar</button>
+          </div>
+        </div>
+
+        <div class="painel" id="painel-relatorio-resultado">
+          <div class="painel-cabecalho painel-cabecalho-acao no-print">
+            <h3>Resultado</h3>
+            <div class="relatorio-acoes">
+              <button class="btn btn-secundario" id="btn-imprimir"><i class="fa-solid fa-print"></i> Imprimir</button>
+              <button class="btn btn-secundario" id="btn-exportar-pdf"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+              <button class="btn btn-secundario" id="btn-exportar-csv"><i class="fa-solid fa-file-csv"></i> Exportar Excel/CSV</button>
+            </div>
+          </div>
+          <div id="relatorio-cabecalho-print" class="relatorio-print-header"></div>
+          <div class="tabela-wrap">
+            <table class="tabela" id="tabela-relatorio">
+              <thead>
+                <tr><th>Funcionário</th><th>Matrícula</th><th>Cargo</th><th>Dias trab.</th><th>Horas trab.</th><th>Horas prev.</th><th>Horas extras</th><th>Atrasos</th><th>Faltas</th><th>Saídas antec.</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== CALENDÁRIO ===================== -->
+      <section class="pagina" id="pagina-calendario" data-pagina="calendario">
+        <div class="painel">
+          <div class="painel-cabecalho painel-cabecalho-acao">
+            <select id="cal-funcionario"></select>
+            <div class="cal-nav">
+              <button id="cal-anterior"><i class="fa-solid fa-chevron-left"></i></button>
+              <strong id="cal-mes-ano">—</strong>
+              <button id="cal-proximo"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+          </div>
+          <div class="calendario" id="calendario-grid"></div>
+          <div class="cal-legenda">
+            <span><i class="ponto-legenda cor-trabalhou"></i> Trabalhou</span>
+            <span><i class="ponto-legenda cor-folga"></i> Folga</span>
+            <span><i class="ponto-legenda cor-falta"></i> Falta</span>
+            <span><i class="ponto-legenda cor-feriado"></i> Feriado</span>
+            <span><i class="ponto-legenda cor-afastamento"></i> Afastamento</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== HISTÓRICO ===================== -->
+      <section class="pagina" id="pagina-historico" data-pagina="historico">
+        <div class="painel">
+          <div class="tabela-wrap">
+            <table class="tabela" id="tabela-historico">
+              <thead>
+                <tr><th>Data/Hora</th><th>Usuário responsável</th><th>Ação</th><th>Registro alterado</th><th>Antes</th><th>Depois</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== CONFIGURAÇÕES ===================== -->
+      <section class="pagina" id="pagina-configuracoes" data-pagina="configuracoes">
+        <div class="painel">
+          <div class="painel-cabecalho"><h3>Preferências</h3></div>
+          <div class="config-lista">
+            <label class="config-item">
+              <span><strong>Tolerância de atraso</strong><br>Minutos tolerados antes de marcar atraso</span>
+              <input type="number" id="cfg-tolerancia" min="0" max="60" value="5">
+            </label>
+            <label class="config-item">
+              <span><strong>Jornada padrão diária</strong><br>Usada ao cadastrar novos funcionários</span>
+              <input type="number" id="cfg-jornada" min="1" max="12" value="8">
+            </label>
+            <button class="btn btn-perigo" id="btn-limpar-dados"><i class="fa-solid fa-trash"></i> Limpar todos os dados de demonstração</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAIS -->
+<!-- ============================================================ -->
+
+<div class="modal-overlay oculto" id="modal-funcionario-overlay">
+  <div class="modal">
+    <div class="modal-cabecalho">
+      <h3 id="modal-funcionario-titulo">Novo funcionário</h3>
+      <button class="modal-fechar" data-fechar-modal="modal-funcionario-overlay"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="form-funcionario" class="modal-corpo">
+      <input type="hidden" id="ff-id">
+      <div class="form-grid">
+        <div class="campo"><label>Nome completo *</label><input type="text" id="ff-nome" required></div>
+        <div class="campo"><label>CPF / Matrícula *</label><input type="text" id="ff-matricula" required></div>
+        <div class="campo"><label>Cargo *</label><input type="text" id="ff-cargo" required></div>
+        <div class="campo"><label>Telefone</label><input type="text" id="ff-telefone"></div>
+        <div class="campo"><label>E-mail</label><input type="email" id="ff-email"></div>
+        <div class="campo"><label>Senha de acesso <span id="ff-senha-hint">*</span></label><input type="password" id="ff-senha" placeholder="Deixe em branco para manter"></div>
+        <div class="campo"><label>Data de admissão *</label><input type="date" id="ff-admissao" required></div>
+        <div class="campo"><label>Salário mensal (R$) *</label><input type="number" id="ff-salario" min="0" step="0.01" required></div>
+        <div class="campo"><label>Tipo de contrato</label>
+          <select id="ff-contrato">
+            <option>CLT</option><option>Meio período</option><option>Temporário</option><option>Estágio</option><option>PJ</option>
+          </select>
+        </div>
+        <div class="campo"><label>Status</label>
+          <select id="ff-status"><option>Ativo</option><option>Inativo</option></select>
+        </div>
+      </div>
+      <div class="campo">
+        <label>Observações</label>
+        <textarea id="ff-observacoes" rows="2"></textarea>
+      </div>
+      <div class="modal-rodape">
+        <button type="button" class="btn btn-secundario" data-fechar-modal="modal-funcionario-overlay">Cancelar</button>
+        <button type="submit" class="btn btn-primario"><i class="fa-solid fa-floppy-disk"></i> Salvar funcionário</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay oculto" id="modal-senha-overlay">
+  <div class="modal modal-sm">
+    <div class="modal-cabecalho">
+      <h3>Confirmar identidade</h3>
+      <button class="modal-fechar" data-fechar-modal="modal-senha-overlay"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="form-confirma-senha" class="modal-corpo">
+      <p class="texto-muted">Digite sua senha para registrar: <strong id="modal-senha-tipo">Entrada</strong></p>
+      <div class="campo">
+        <label>Senha</label>
+        <input type="password" id="confirma-senha-input" required autofocus>
+      </div>
+      <p class="login-erro" id="confirma-senha-erro"></p>
+      <div class="modal-rodape">
+        <button type="button" class="btn btn-secundario" data-fechar-modal="modal-senha-overlay">Cancelar</button>
+        <button type="submit" class="btn btn-primario"><i class="fa-solid fa-fingerprint"></i> Confirmar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay oculto" id="modal-visualizar-overlay">
+  <div class="modal">
+    <div class="modal-cabecalho">
+      <h3>Perfil do funcionário</h3>
+      <button class="modal-fechar" data-fechar-modal="modal-visualizar-overlay"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-corpo" id="modal-visualizar-corpo"></div>
+  </div>
+</div>
+
+<div class="modal-overlay oculto" id="modal-corrigir-overlay">
+  <div class="modal modal-sm">
+    <div class="modal-cabecalho">
+      <h3>Corrigir registro de ponto</h3>
+      <button class="modal-fechar" data-fechar-modal="modal-corrigir-overlay"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="form-corrigir" class="modal-corpo">
+      <input type="hidden" id="fc-ponto-id">
+      <div class="form-grid">
+        <div class="campo"><label>Entrada</label><input type="time" id="fc-entrada"></div>
+        <div class="campo"><label>Saída intervalo</label><input type="time" id="fc-saida-intervalo"></div>
+        <div class="campo"><label>Retorno</label><input type="time" id="fc-retorno"></div>
+        <div class="campo"><label>Saída</label><input type="time" id="fc-saida"></div>
+      </div>
+      <div class="campo"><label>Motivo da correção *</label><input type="text" id="fc-motivo" required placeholder="Ex.: esquecimento de bater o ponto"></div>
+      <div class="modal-rodape">
+        <button type="button" class="btn btn-secundario" data-fechar-modal="modal-corrigir-overlay">Cancelar</button>
+        <button type="submit" class="btn btn-primario"><i class="fa-solid fa-floppy-disk"></i> Salvar correção</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay oculto" id="modal-dia-overlay">
+  <div class="modal modal-sm">
+    <div class="modal-cabecalho">
+      <h3 id="modal-dia-titulo">Registros do dia</h3>
+      <button class="modal-fechar" data-fechar-modal="modal-dia-overlay"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-corpo" id="modal-dia-corpo"></div>
+  </div>
+</div>
+
+<div class="modal-overlay oculto" id="modal-confirmar-overlay">
+  <div class="modal modal-sm">
+    <div class="modal-cabecalho">
+      <h3 id="modal-confirmar-titulo">Confirmar ação</h3>
+      <button class="modal-fechar" data-fechar-modal="modal-confirmar-overlay"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-corpo">
+      <p id="modal-confirmar-texto">Tem certeza?</p>
+      <div class="modal-rodape">
+        <button type="button" class="btn btn-secundario" data-fechar-modal="modal-confirmar-overlay">Cancelar</button>
+        <button type="button" class="btn btn-perigo" id="modal-confirmar-btn">Confirmar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Alertas (toasts) -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
